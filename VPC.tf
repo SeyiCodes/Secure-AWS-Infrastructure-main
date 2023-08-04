@@ -9,7 +9,7 @@ provider "aws" {
 
 # The VPC Resource
 resource "aws_vpc" "demo_vpc" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.cidr_block
 
   tags = {
     Name = "demo_vpc"
@@ -20,20 +20,20 @@ resource "aws_vpc" "demo_vpc" {
 resource "aws_subnet" "private_subnet_1b" {
   vpc_id            = aws_vpc.demo_vpc.id
   cidr_block        = "10.0.0.0/19"
-  availability_zone = var.availablity_zone1
+  availability_zone = var.availablity_zone2
 
   tags = {
-    Name = "private_subnet_1a"
+    Name = "private_subnet_1b"
   }
 }
 
 resource "aws_subnet" "private_subnet_1c" {
   vpc_id            = aws_vpc.demo_vpc.id
   cidr_block        = "10.0.32.0/19"
-  availability_zone = var.availablity_zone2
+  availability_zone = var.availablity_zone3
 
   tags = {
-    Name = "private_subnet_1b"
+    Name = "private_subnet_1c"
   }
 }
 
@@ -111,9 +111,8 @@ resource "aws_route_table_association" "public_subnet_1c" {
 
 # The Elastic IP Resource
 resource "aws_eip" "demo_eip" {
-  count = 2
-  vpc_id = "${aws_vpc.vpc.id}"
-  for_each = "${aws_subnet.public_subnet.*.id}"
+  vpc_id   = aws_vpc.vpc.id
+  for_each = aws_subnet.public_subnet.*.id
   tags = {
     Name = "demo_eip"
   }
@@ -141,10 +140,10 @@ resource "aws_eip" "demo_eip" {
 # }
 
 resource "aws_nat_gateway" "demo_nat" {
-  count = 2
-  subnet_id = "${aws_subnet.public_subnet.*.id}"
-  allocation_id = "${aws_eip.demo_eip.*.allocation_id}"
-  depends_on = [aws_internet_gateway.demo_igw]
+  count         = 2
+  subnet_id     = aws_subnet.public_subnet.*.id
+  allocation_id = aws_eip.demo_eip.*.allocation_id
+  depends_on    = [aws_internet_gateway.demo_igw]
 
 
 }
